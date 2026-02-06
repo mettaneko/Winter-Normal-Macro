@@ -5,9 +5,10 @@
 An anime vanguards macro for the winter normal LTM mode
 
 # What is this?
-This just contains updated versions of the winter event.  
+This just contains updated versions of the winter event python files so I can release more QOL or updates easier.  
 For the rest of the files download from:  
 https://mega.nz/file/C8p1nSpL#c_jFD9UViHjo4eYiVqW8Ep3nUB5L-e7x-f_rWsivvFA
+MAKE SURE TO REPLACE THE OLD FILES IN THAT MEGA FILES WITH THE NEW ONES!!
 
 # Recent updates
 Added CTM flags.  
