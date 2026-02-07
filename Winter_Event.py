@@ -465,6 +465,7 @@ def on_failure():
     while pyautogui.pixelMatchesColor(771,703,expectedRGBColor=(198,158,0),tolerance=8):
         click(771,703,delay=0.2)
         time.sleep(0.4)
+    click(771,703,delay=0.2)
     
 
 def sell_kaguya(): # Sells kaguya (cant reset while domain is active)
@@ -1092,4 +1093,5 @@ def main():
                     time.sleep(1)
         time.sleep(1)
 main()
+
 
