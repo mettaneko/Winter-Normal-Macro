@@ -7,11 +7,15 @@ An anime vanguards macro for the winter normal LTM mode
 # What is this?
 This just contains updated versions of the winter event python files so I can release more QOL or updates easier.  
 For the rest of the files download from:  
-https://mega.nz/file/C8p1nSpL#c_jFD9UViHjo4eYiVqW8Ep3nUB5L-e7x-f_rWsivvFA
+REMOVE THE print(restart_match()) IN AV METHODS (IN THE TOOLS FOLDER)
+https://mega.nz/file/CphzFRiR#s5_-7hDLLsRpXCn5DjvZ6p9ZT-V0tVR8_sHXh21uiZM
 MAKE SURE TO REPLACE THE OLD FILES IN THAT MEGA FILES WITH THE NEW ONES!!
 
+# Common fixes
+When downloading from mega data corruption can happen which can screw up the python executable or the tesseract. You can either try redownloading / unzipping again OR https://github.com/tesseract-ocr/tesseract/releases/tag/5.5.0 use the teseract installer to install tesseract (clear the folder first) with a clean version in the folder. You can also add the path to the tesseract (to the directory not the exe) in your PATH (enviromental variable).
+
 # Recent updates
-Added CTM flags.  Roblox click to move (built in pathing, good for low-end devices / high ping users)
+Added alot more failure detection to reset if it fails. Added CTM flags.  Roblox click to move (built in pathing, good for low-end devices / high ping users)
 For `directions('1')` and `directions('2')`, you can add:
 
 ```python
