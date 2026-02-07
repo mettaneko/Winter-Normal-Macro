@@ -495,7 +495,7 @@ def main():
     speed_pos = [(949, 535), (948, 496), (944, 444)]
     start_of_run = datetime.now()
     num_runs = 0  
-    while True:
+    while True: # Wrapping the main loop so the fail condition can break
         while True:
             global g_toggle
             global Unit_Placements_Left
@@ -1092,3 +1092,4 @@ def main():
                     time.sleep(1)
         time.sleep(1)
 main()
+
