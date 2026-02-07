@@ -5,7 +5,7 @@
 An anime vanguards macro for the winter normal LTM mode
 
 # What is this?
-This just contains updated versions of the winter event python files so I can release more QOL or updates easier.  
+This just contains updated versions of the winter event python files so I can release more QOL or updates easier (make sure to also add the new pictures from resources).  
 For the rest of the files download from:  
 REMOVE THE print(restart_match()) IN AV METHODS (IN THE TOOLS FOLDER)
 https://mega.nz/file/CphzFRiR#s5_-7hDLLsRpXCn5DjvZ6p9ZT-V0tVR8_sHXh21uiZM
