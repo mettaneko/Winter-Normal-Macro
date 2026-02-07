@@ -48,14 +48,14 @@ If Python fails to run or packages are missing:
 ---
 
 ## Recent Updates
+
+### Added best loss detection
+Detecting loss now will restart the program, with the new auto_start feature it will completely let you restart if you lose at any point! Also made the stop key work
+
 ### Added full nimbus support
 ```python
 USE_NIMBUS = True # Use the nimbus cloud instead of newsman (more consistent + better)
 ```
-### Better failure detection
-More checks were added to automatically reset the macro if something goes wrong.
-Will add inactivity timer in the future
-
 ### Click‑to‑Move (CTM) support
 For direction 1 and 2
 Roblox’s built‑in pathing is now supported.  
