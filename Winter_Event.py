@@ -1043,8 +1043,7 @@ def main():
                 time.sleep(0.5)
                 click(607, 381, delay=0.2)
              
-               
-                break
+            
             for kuzan in Unit_Positions['Kuzan']:
                 click(kuzan[0],kuzan[1],delay=0.2)
                 time.sleep(0.5)
@@ -1197,3 +1196,4 @@ for z in range(3):
 if avM.get_wave() == 1:
     avM.restart_match()
 main()
+
