@@ -4,6 +4,7 @@
 
 # Winter-Normal-Macro
 An Anime Vanguards macro for the **Winter Normal** LTM mode.
+This is a **personal** project so if something breaks you might have to fix/tweak it yourself!
 
 ---
 
