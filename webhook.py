@@ -3,7 +3,7 @@ import json
 import datetime
 
 
-webhook_url = "https://discord.com/api/webhooks/1408947520163414078/RUsU51edn0jYXdUVlWbdpZovbWhBSGJvlg2gtwakx35JNaE4lMVj3lJAbz5JaeNRxNcr"
+webhook_url = "url_link_here"
 
 def send_webhook(run_time: str, num_runs: int, task_name: int, img):
 
