@@ -3,7 +3,7 @@ import json
 import datetime
 
 
-webhook_url = "YOUR_URL_HERE"
+webhook_url = "https://discord.com/api/webhooks/1408947520163414078/RUsU51edn0jYXdUVlWbdpZovbWhBSGJvlg2gtwakx35JNaE4lMVj3lJAbz5JaeNRxNcr"
 
 def send_webhook(run_time: str, num_runs: int, task_name: int, img):
 
@@ -15,7 +15,7 @@ def send_webhook(run_time: str, num_runs: int, task_name: int, img):
         "avatar_url": "https://i.pinimg.com/736x/f6/6a/72/f66a723e8c68fecc5bbbdca927fc4888.jpg",
         "embeds": [
             {
-            "title": "mettaneko.ru",
+            "title": "Cryonium",
             "description": "",
             "color": 3447003,
             "fields": [
@@ -58,4 +58,4 @@ def send_webhook(run_time: str, num_runs: int, task_name: int, img):
         response = requests.post(webhook_url, data={"payload_json": json.dumps(payload)}, files=files)
         #print(response.status_code, response.text)
     else:
-        print("Error, no wins or losses detected")
+        print("Ошибка, нет побед или проигрышей.")

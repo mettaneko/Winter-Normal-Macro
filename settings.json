@@ -1,6 +1,7 @@
 {
-    "STOP_START_HOTKEY": "l", 
-    "AUTO_START": true,
+    "ENABLE_DISCORD_RPC": true,
+    "EXIT_HOTKEY": "z",
+    "AUTO_START": false,
     "USE_NIMBUS": true,
     "USE_WD": true,
     "USE_DIO": false,

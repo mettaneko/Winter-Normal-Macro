@@ -15,6 +15,7 @@ import ctypes
 
 # Variables
 STOP_START_HOTKEY = 'l'
+REPLAY_BUTTON_POS = (771,703) # where the replay button is, change if needed
 AUTO_START = True # if true upon failure it will auto restart, this also starts the macro when you launch the script
 USE_NIMBUS = True # Use the nimbus cloud instead of newsman (more consistent + better)
 USE_WD = True # use world destroyer
@@ -45,7 +46,7 @@ Unit_Positions = {
         'Escanor':[(587, 519)],
         'Hero': [(916, 501),(927, 528),(916, 554)],
         'Kuzan':[(938, 477), (951, 570), (657, 521), (654, 559)],
-        'Kag':[(643, 490)] 
+        'Kag':[(746, 329)]
         
 }
 Units_Placeable = ['Ainz','Beni','Rukia','Mage','Escanor','Hero','Kuzan','Kag']
@@ -563,12 +564,15 @@ def set_boss(): # Sets unit priority to boss
     keyboard.press_and_release('r')
     
 def on_failure():
-    click(771,703,delay=0.2)
-    while pyautogui.pixelMatchesColor(771,703,expectedRGBColor=(198,158,0),tolerance=8):
-        click(771,703,delay=0.2)
-        print(pyautogui.pixel(771,703))
+    print("ran")
+    global REPLAY_BUTTON_POS
+    click(REPLAY_BUTTON_POS[0],REPLAY_BUTTON_POS[1],delay=0.2)
+    time.sleep(1)
+    while bt.does_exist("Winter\\DetectLoss.png",confidence=0.9,grayscale=False,region=(311, 295, 825, 428)):
+        click(REPLAY_BUTTON_POS[0],REPLAY_BUTTON_POS[1],delay=0.2)
+        print("Retrying...")
         time.sleep(0.4)
-    click(771,703,delay=0.2)
+    click(REPLAY_BUTTON_POS[0],REPLAY_BUTTON_POS[1],delay=0.2)
     
 
 def sell_kaguya(): # Sells kaguya (cant reset while domain is active)
@@ -593,7 +597,7 @@ def sell_kaguya(): # Sells kaguya (cant reset while domain is active)
 def detect_loss():
     print("Starting loss detection")
     while True:
-        if pyautogui.pixelMatchesColor(690,270,(242,25,28),tolerance=8):
+        if pyautogui.pixelMatchesColor(690,270,(242,25,28),tolerance=25):
             print("found loss")
             try:
                 args = list(sys.argv)
@@ -1161,30 +1165,10 @@ def main():
                 time.sleep(1)
 
 
-def reset_mount():
-    detected = False
-    while not detected:
-        time.sleep(2.5)
-        found_mount = True
-        t = 15
-        keyboard.press_and_release('v')
-        while not bt.does_exist("Winter\\ResetMount.png",confidence=0.7,grayscale=True,region=(512, 689, 975, 763)):
-            print(t)
-            t-=1
-            time.sleep(0.2)
-            if t<0:
-                print("timeout no detected")
-                found_mount = False
-                break
-        if found_mount:
-            print("Reset mount")
-            detected = True
-            time.sleep(2.5)
-            keyboard.press_and_release('v')
     
-if pyautogui.pixelMatchesColor(690,270,(242,25,28),tolerance=8):
+if pyautogui.pixelMatchesColor(690,270,(242,25,28),tolerance=25):
     on_failure()
-    reset_mount()
+    time.sleep(2)
 Thread(target=detect_loss).start()
 if AUTO_START:
     if not "--stopped" in sys.argv:
@@ -1197,6 +1181,11 @@ for z in range(3):
 if avM.get_wave() >= 1:
     avM.restart_match()
 main()
+
+
+
+
+
 
 
 
