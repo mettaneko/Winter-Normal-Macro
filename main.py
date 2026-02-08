@@ -43,25 +43,18 @@ def sync_settings():
             print("> [WARN] Settings file corrupted. Recreating.")
             current = {}
 
-    # 2. Объединяем (Приоритет у пользователя)
     new_settings = DEFAULT_SETTINGS.copy()
     changed = False
     
     for key, default_val in DEFAULT_SETTINGS.items():
         if key in current:
-            # Пользовательское значение сохраняется (даже если false!)
             new_settings[key] = current[key]
         else:
-            # Ключа нет - добавляем дефолтный
-            # print(f"> [CONFIG] Added new setting: {key}")
             changed = True
-            
-    # Опционально: сохраняем неизвестные ключи (чтобы не удалять лишнее у пользователя)
     for key, val in current.items():
         if key not in new_settings:
             new_settings[key] = val
 
-    # 3. Сохраняем, если были изменения
     if changed or not os.path.exists(SETTINGS_FILE):
         with open(SETTINGS_FILE, 'w', encoding='utf-8') as f:
             json.dump(new_settings, f, indent=4, ensure_ascii=False)
@@ -102,14 +95,10 @@ def main():
     install_deps()
     import keyboard
 
-    # 0. СИНХРОНИЗАЦИЯ НАСТРОЕК (Важно!)
-    # Теперь settings содержит актуальные данные: либо то, что было в файле, либо дефолт
     settings = sync_settings()
     
-    # Достаем кнопку выхода (удаляем из словаря, чтобы не пытаться впихнуть её в макрос как переменную)
     exit_key = settings.get("EXIT_HOTKEY", "end") 
     
-    # 1. Запуск апдейтера и позиционирования
     run_wait(UPDATE_SCRIPT)
     run_wait(POSITION_SCRIPT)
 
@@ -118,22 +107,17 @@ def main():
         return
 
     try:
-        # 2. Патчим webhook.py (если он есть)
         if os.path.exists(WEBHOOK_FILE):
              patch_file(WEBHOOK_FILE, settings)
-
-        # 3. Готовим основной макрос
+             
         with open(MACRO_ORIGINAL, 'r', encoding='utf-8') as f:
             content = f.read()
-
-        # Патчим переменные в основном макросе
+            
         for key, val in settings.items():
             pattern = rf"^{key}\s*=\s*.*"
             if re.search(pattern, content, flags=re.MULTILINE):
                 content = re.sub(pattern, f"{key} = {repr(val)}", content, flags=re.MULTILINE)
 
-        # 4. Вставляем RPC (Если включено)
-        # Обратите внимание: проверяем настройку ENABLE_DISCORD_RPC
         if settings.get("ENABLE_DISCORD_RPC", True):
             rpc_code = f"""
 import threading, time, sys
@@ -155,7 +139,6 @@ threading.Thread(target=_rpc, daemon=True).start()
         else:
             print("> Discord RPC is disabled.")
 
-        # 5. Сохраняем временный файл и запускаем
         with open(MACRO_TEMP_RUN, 'w', encoding='utf-8') as f:
             f.write(content)
 
