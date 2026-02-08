@@ -1,0 +1,16 @@
+settings.json
+main.py.old
+update.py.old
+__pycache__/
+*.py[cod]
+*$py.class
+Winter_Event_Run.py
+venv/
+env/
+.env
+.venv/
+Python/
+*.log
+get-pip.py
+.DS_Store
+Thumbs.db
