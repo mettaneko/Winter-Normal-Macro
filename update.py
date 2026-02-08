@@ -12,17 +12,16 @@ except ImportError:
 
 LOADER_REPO = "https://github.com/mettaneko/Winter-Normal-Macro/archive/refs/heads/main.zip"
 MACRO_REPO = "https://github.com/loxersoun2369189-wq/Winter-Normal-Macro/archive/refs/heads/main.zip"
-LOADER_FILES = {"main.py", "update.py", "README.md"}
-MACRO_IGNORE = {"README.md", "README.txt", "settings.json", "main.py", "update.py", "Winter_Event_Run.py", "get-pip.py"}
-# ----------------------------
+
+LOADER_FILES = {"main.py", "update.py"}
+
+MACRO_IGNORE = {
+    "README.md", "README.txt", "settings.json", 
+    "main.py", "update.py", "Winter_Event_Run.py", "get-pip.py", ".gitignore"
+}
+IGNORE_PREFIXES = ("Python/", "__pycache__/", ".git/") 
 
 def download_and_extract(url, target_files=None, ignore_files=None, is_loader=False):
-    """
-    url: ссылка на zip
-    target_files: если задано, извлекаем ТОЛЬКО эти файлы (whitelist)
-    ignore_files: если задано, извлекаем всё КРОМЕ этих файлов (blacklist)
-    is_loader: если True, включаем логику перезапуска при обновлении main.py
-    """
     root = os.path.dirname(os.path.abspath(__file__))
     updated = False
     
@@ -41,15 +40,15 @@ def download_and_extract(url, target_files=None, ignore_files=None, is_loader=Fa
                 
                 if not rel_path: continue
 
-                # Фильтрация
+                if any(rel_path.startswith(prefix) for prefix in IGNORE_PREFIXES):
+                    continue
+
                 if target_files and filename not in target_files: continue
                 if ignore_files and filename in ignore_files: continue
-
+                
                 dest = os.path.join(root, rel_path)
                 
-                # Логика обновления main.py "на лету"
                 if is_loader and filename == "main.py" and os.path.exists(dest):
-                    # Проверяем, изменился ли файл (по размеру), чтобы зря не рестартить
                     if os.path.getsize(dest) != m.file_size:
                         try:
                             old = dest + ".old"
@@ -57,14 +56,10 @@ def download_and_extract(url, target_files=None, ignore_files=None, is_loader=Fa
                             os.rename(dest, old)
                             updated = True
                             print(f"  [UPD] {filename} (Self-update)")
-                        except OSError:
-                            continue # Файл занят
-                    else:
-                        continue # Файл такой же, пропускаем
+                        except OSError: continue
+                    else: continue
 
                 os.makedirs(os.path.dirname(dest), exist_ok=True)
-                
-                # Запись файла (для main.py это будет запись нового файла на место переименованного)
                 with open(dest, 'wb') as f:
                     f.write(z.read(m.filename))
                     
@@ -75,16 +70,13 @@ def download_and_extract(url, target_files=None, ignore_files=None, is_loader=Fa
     return updated
 
 def update():
-    print("> Checking Loader updates (Mettaneko)...")
-    loader_updated = download_and_extract(LOADER_REPO, target_files=LOADER_FILES, is_loader=True)
-
-    if loader_updated:
+    print("> Checking Loader updates...")
+    if download_and_extract(LOADER_REPO, target_files=LOADER_FILES, is_loader=True):
         print("\n[INFO] LOADER UPDATED. RESTARTING...")
         time.sleep(2)
-        os.execl(sys.executable, sys.executable, "main.py") # Рестарт
-        return # Сюда мы уже не дойдем
+        os.execl(sys.executable, sys.executable, "main.py")
 
-    print("> Checking Macro updates (Original)...")
+    print("> Checking Macro updates...")
     download_and_extract(MACRO_REPO, ignore_files=MACRO_IGNORE)
     
     print("> Update check complete.")
