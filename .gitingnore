@@ -14,3 +14,5 @@ Python/
 get-pip.py
 .DS_Store
 Thumbs.db
+settings.json
+Winter_Event.py
