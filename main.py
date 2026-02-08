@@ -28,17 +28,21 @@ DEFAULT_SETTINGS = OrderedDict([
     ("MAX_UPG_AINZ_PLACEMENT", False),
     ("AINZ_SPELLS", False),
 ])
-# ---------------------------------------------------------
+
+def install_deps():
+    try: 
+        import keyboard
+        import pypresence
+    except ImportError: 
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'keyboard', 'pypresence'], stdout=subprocess.DEVNULL)
 
 def sync_settings():
     current = {}
-
     if os.path.exists(SETTINGS_FILE):
         try:
             with open(SETTINGS_FILE, 'r', encoding='utf-8') as f:
                 current = json.load(f)
         except:
-            print("> [WARN] Settings file corrupted. Recreating.")
             current = {}
 
     new_settings = DEFAULT_SETTINGS.copy()
@@ -49,6 +53,7 @@ def sync_settings():
             new_settings[key] = current[key]
         else:
             changed = True
+            
     for key, val in current.items():
         if key not in new_settings:
             new_settings[key] = val
@@ -56,7 +61,6 @@ def sync_settings():
     if changed or not os.path.exists(SETTINGS_FILE):
         with open(SETTINGS_FILE, 'w', encoding='utf-8') as f:
             json.dump(new_settings, f, indent=4, ensure_ascii=False)
-        print("> Settings updated.")
         
     return new_settings
 
@@ -65,13 +69,7 @@ def run_wait(name):
         print(f"> {name}...")
         subprocess.Popen([sys.executable, name]).wait()
 
-def install_deps():
-    try: import keyboard; import pypresence
-    except ImportError: 
-        subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'keyboard', 'pypresence'], stdout=subprocess.DEVNULL)
-
 def patch_file(filepath, settings):
-    """Патчит файл (например, webhook.py)"""
     if not os.path.exists(filepath): return
     
     with open(filepath, 'r', encoding='utf-8') as f:
@@ -94,8 +92,7 @@ def main():
     import keyboard
 
     settings = sync_settings()
-    
-    exit_key = settings.get("EXIT_HOTKEY", "end") 
+    exit_key = str(settings.get("EXIT_HOTKEY", "z")).lower()
     
     run_wait(UPDATE_SCRIPT)
     run_wait(POSITION_SCRIPT)
@@ -107,10 +104,10 @@ def main():
     try:
         if os.path.exists(WEBHOOK_FILE):
              patch_file(WEBHOOK_FILE, settings)
-             
+
         with open(MACRO_ORIGINAL, 'r', encoding='utf-8') as f:
             content = f.read()
-            
+
         for key, val in settings.items():
             pattern = rf"^{key}\s*=\s*.*"
             if re.search(pattern, content, flags=re.MULTILINE):
@@ -135,22 +132,28 @@ threading.Thread(target=_rpc, daemon=True).start()
 """
             content = rpc_code + "\n" + content
         else:
-            print("> Discord RPC is disabled.")
+            print("> Discord RPC disabled.")
 
         with open(MACRO_TEMP_RUN, 'w', encoding='utf-8') as f:
             f.write(content)
 
         print(f"\n[MAIN] RUNNING. Press '{exit_key.upper()}' to EXIT.")
+        
         proc = subprocess.Popen([sys.executable, MACRO_TEMP_RUN])
 
         while True:
             if proc.poll() is not None:
                 print("\n> Macro closed.")
                 break
-            if keyboard.is_pressed(exit_key):
-                print(f"\n> EXIT.")
-                proc.kill()
-                break
+            
+            try:
+                if keyboard.is_pressed(exit_key):
+                    print(f"\n> EXIT KEY '{exit_key}' PRESSED. Killing process...")
+                    proc.kill()
+                    break
+            except:
+                pass
+            
             time.sleep(0.05)
 
     except Exception as e:
