@@ -122,9 +122,21 @@ def _rpc():
         RPC = Presence("{DISCORD_CLIENT_ID}")
         RPC.connect()
         start = time.time()
+
+        my_buttons = [
+            {{"label": "Download Macro", "url": "https://github.com/loxersoun2369189-wq/Winter-Normal-Macro"}},
+            {{"label": "mettaneko.ru",   "url": "https://mettaneko.ru"}}
+        ]
+        
         while True:
             try:
-                RPC.update(state="Farming...", details="AV Winter Event Mango", start=start, large_image="logo")
+                RPC.update(
+                    state="Farming...", 
+                    details="AV Winter Event Mango", 
+                    start=start, 
+                    large_image="logo",
+                    buttons=my_buttons
+                )
             except: pass
             time.sleep(15)
     except: pass
