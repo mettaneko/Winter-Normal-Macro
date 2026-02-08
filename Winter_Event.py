@@ -676,9 +676,6 @@ def main():
                             speed_max[i] = True
                         click(607, 381, delay=0.2)
                 time.sleep(1)
-             
-               
-                break  
             # Tak's placement + max
             keyboard.press('w')
             time.sleep(0.8)
@@ -1200,6 +1197,7 @@ for z in range(3):
 if avM.get_wave() >= 1:
     avM.restart_match()
 main()
+
 
 
 
