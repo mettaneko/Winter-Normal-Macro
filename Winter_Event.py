@@ -10,11 +10,17 @@ import sys
 import os
 from datetime import datetime
 from threading import Thread
+import pydirectinput
 import ctypes
 
 
+VERSION_N = '1.2'
+
 # Variables
 STOP_START_HOTKEY = 'l'
+START_BUTTON_ID = True # If true it uses image detection to search for start button
+USE_UI_NAV = False # uses ui navigation for buying upgrades
+WAVE_RESTART_150 = False # if false restarts on 140
 REPLAY_BUTTON_POS = (771,703) # where the replay button is, change if needed
 AUTO_START = True # if true upon failure it will auto restart, this also starts the macro when you launch the script
 USE_NIMBUS = True # Use the nimbus cloud instead of newsman (more consistent + better)
@@ -73,11 +79,11 @@ def click(x,y, delay: int | None=None, right_click: bool | None = None) -> None:
     pyautogui.moveTo(x,y)
     ctypes.windll.user32.mouse_event(0x0001, 0, 1, 0, 0)
     time.sleep(delay)
+    ctypes.windll.user32.mouse_event(0x0001, 0, -1, 0, 0)
     if right_click:
         pyautogui.rightClick()
     else:
         pyautogui.click()
-
 
 
 # Wait for start screen
@@ -91,8 +97,12 @@ def wait_start(delay: int | None = None):
     while found == False and i<90: # 1 and a half minute
         try: 
             i+=1
-            if pyautogui.pixel(874, 226) == (8,148,8): #green pixel
-                found = True
+            if START_BUTTON_ID:
+                if bt.does_exist("Winter\\VoteStartButton.png",confidence=0.8,grayscale=True):
+                    found = True
+            else:
+                if pyautogui.pixel(874, 226) == (8,148,8): #green pixel
+                    found = True
         except Exception as e:
             print(f"e {e}")
         time.sleep(delay)
@@ -196,6 +206,42 @@ def directions(area: str, unit: str | None=None, CTM: bool | None = None): # Thi
             keyboard.release('s')
             keyboard.press_and_release('v')
             time.sleep(2)
+            e_delay = 0.7
+            timeout = 2.5/e_delay
+            at_location = False
+            while not at_location:
+                keyboard.press_and_release('e')
+                time.sleep(e_delay)
+                if bt.does_exist("Winter\\LootBox.png",confidence=0.7,grayscale=True, region=(493, 543, 1024, 785)):
+                    at_location = True
+                if  bt.does_exist("Winter\\Full_Bar.png",confidence=0.7,grayscale=True, region=(493, 543, 1024, 785)):
+                    at_location = True
+                if  bt.does_exist("Winter\\NO_YEN.png",confidence=0.7,grayscale=True,  region=(493, 543, 1024, 785)):
+                    at_location = True
+                if timeout < 0:
+                    quick_rts()
+                    keyboard.press_and_release('v')
+                    time.sleep(1)
+                    keyboard.press('a')
+                    time.sleep(3)
+                    keyboard.release('a')
+
+                    keyboard.press('s')
+                    time.sleep(1.65)
+                    keyboard.release('s')
+
+                    keyboard.press('d')
+                    time.sleep(1.6)
+                    keyboard.release('d')
+
+                    keyboard.press('s')
+                    time.sleep(0.5)
+                    keyboard.release('s')
+                    keyboard.press_and_release('v')
+                    time.sleep(2)
+                    timeout = 3/e_delay
+                timeout-=1
+            print("At lootbox")
 
         if area == '4': #  Upgrader location
             keyboard.press_and_release('v')
@@ -205,7 +251,7 @@ def directions(area: str, unit: str | None=None, CTM: bool | None = None): # Thi
             keyboard.release('a')
 
             keyboard.press('s')
-            time.sleep(1.85)
+            time.sleep(1.7)
             keyboard.release('s')
             keyboard.press_and_release('v')
             time.sleep(2)
@@ -340,70 +386,172 @@ def upgrader(upgrade: str):
     '''
     Buys the upgrades for the winter event: fortune, range, damage, speed, armor
     '''
+    e_delay = 0.2
+    timeout = 3/e_delay
     keyboard.press_and_release('e')
     while not pyautogui.pixel(1111,310) == (255,255,255):
+        if timeout < 0:
+            quick_rts()
+            directions('4')
+            timeout = 3/e_delay
+        timeout-=1
         keyboard.press_and_release('e')
-        time.sleep(0.2)
-    if upgrade == 'fortune':
-        click(966, 471, delay=0.2)
-        time.sleep(0.5)
-        while not pyautogui.pixelMatchesColor(966, 471,expectedRGBColor=(24, 24, 24),tolerance=20):
-            if not g_toggle:
-                break
+        time.sleep(e_delay)
+    click(607, 381, delay=0.2)
+    time.sleep(0.5)
+    if not USE_UI_NAV:
+        if upgrade == 'fortune':
             click(966, 471, delay=0.2)
-            time.sleep(0.8)
-        click(1112, 309, delay=0.2)
-    if upgrade == 'range':
-        click(962, 621, delay=0.2)
-        time.sleep(0.5)
-        while not pyautogui.pixelMatchesColor(962, 621,expectedRGBColor=(24, 24, 24),tolerance=20):
-            if not g_toggle:
-                break
+            time.sleep(0.5)
+            while not pyautogui.pixelMatchesColor(966, 471,expectedRGBColor=(24, 24, 24),tolerance=40):
+                if not g_toggle:
+                    break
+                click(966, 471, delay=0.2)
+                time.sleep(0.8)
+            print(pyautogui.pixel(966, 471))
+            click(1112, 309, delay=0.2)
+        if upgrade == 'range':
             click(962, 621, delay=0.2)
-            time.sleep(0.8)
-        click(1112, 309, delay=0.2)
-    if upgrade == "damage":
-        click(765, 497, delay=0.1)
-        pos = (959, 399)
-        ctypes.windll.user32.mouse_event(0x0800, 0, 0, -450, 0)
-        time.sleep(0.2)
-        click(pos[0], pos[1], delay=0.2)
-        time.sleep(0.5)
-        while not pyautogui.pixelMatchesColor(pos[0], pos[1],expectedRGBColor=(24, 24, 24),tolerance=20):
-            if not g_toggle:
-                break
+            time.sleep(0.5)
+            while not pyautogui.pixelMatchesColor(962, 621,expectedRGBColor=(24, 24, 24),tolerance=40):
+                if not g_toggle:
+                    break
+                click(962, 621, delay=0.2)
+                time.sleep(0.8)
+            click(1112, 309, delay=0.2)
+        if upgrade == "damage":
+            click(765, 497, delay=0.1)
+            pos = (959, 399)
+            ctypes.windll.user32.mouse_event(0x0800, 0, 0, -450, 0)
+            time.sleep(0.2)
             click(pos[0], pos[1], delay=0.2)
-            time.sleep(0.8)
-        ctypes.windll.user32.mouse_event(0x0800, 0, 0, 1000, 0)
-        click(1112, 309, delay=0.2)
-    if upgrade == "speed":
-        click(765, 497, delay=0.1)
-        pos = (957, 424)
-        ctypes.windll.user32.mouse_event(0x0800, 0, 0, -600, 0)
-        time.sleep(0.2)
-        click(pos[0], pos[1], delay=0.2)
-        time.sleep(0.5)
-        while not pyautogui.pixelMatchesColor(pos[0], pos[1],expectedRGBColor=(24, 24, 24),tolerance=20):  
-            if not g_toggle:
-                break
+            time.sleep(0.5)
+            while not pyautogui.pixelMatchesColor(pos[0], pos[1],expectedRGBColor=(24, 24, 24),tolerance=40):
+                if not g_toggle:
+                    break
+                click(pos[0], pos[1], delay=0.2)
+                time.sleep(0.8)
+            ctypes.windll.user32.mouse_event(0x0800, 0, 0, 1000, 0)
+            click(1112, 309, delay=0.2)
+        if upgrade == "speed":
+            click(765, 497, delay=0.1)
+            pos = (957, 424)
+            ctypes.windll.user32.mouse_event(0x0800, 0, 0, -600, 0)
+            time.sleep(0.2)
             click(pos[0], pos[1], delay=0.2)
-            time.sleep(0.8)
-        ctypes.windll.user32.mouse_event(0x0800, 0, 0, 1000, 0)
-        click(1112, 309, delay=0.2)
-    if upgrade == "armor":
-        click(765, 497, delay=0.1)
-        pos = (955, 577)
-        ctypes.windll.user32.mouse_event(0x0800, 0, 0, -600, 0)
-        time.sleep(0.2)
-        click(pos[0], pos[1], delay=0.2)
-        time.sleep(0.5)
-        while not  pyautogui.pixelMatchesColor(pos[0], pos[1],expectedRGBColor=(24, 24, 24),tolerance=20):
-            if not g_toggle:
-                break
+            time.sleep(0.5)
+            while not pyautogui.pixelMatchesColor(pos[0], pos[1],expectedRGBColor=(24, 24, 24),tolerance=40):  
+                if not g_toggle:
+                    break
+                click(pos[0], pos[1], delay=0.2)
+                time.sleep(0.8)
+            ctypes.windll.user32.mouse_event(0x0800, 0, 0, 1000, 0)
+            click(1112, 309, delay=0.2)
+        if upgrade == "armor":
+            click(765, 497, delay=0.1)
+            pos = (955, 577)
+            ctypes.windll.user32.mouse_event(0x0800, 0, 0, -600, 0)
+            time.sleep(0.2)
             click(pos[0], pos[1], delay=0.2)
-            time.sleep(0.8)
-        ctypes.windll.user32.mouse_event(0x0800, 0, 0, 1000, 0)
-        click(1112, 309, delay=0.2)
+            time.sleep(0.5)
+            while not  pyautogui.pixelMatchesColor(pos[0], pos[1],expectedRGBColor=(24, 24, 24),tolerance=40):
+                if not g_toggle:
+                    break
+                click(pos[0], pos[1], delay=0.2)
+                time.sleep(0.8)
+            ctypes.windll.user32.mouse_event(0x0800, 0, 0, 1000, 0)
+            click(1112, 309, delay=0.2)
+    else:
+        if upgrade == 'fortune':
+            pos = (960, 406)
+            print("hi")
+            click(765, 497, delay=0.1)
+            ctypes.windll.user32.mouse_event(0x0800, 0, 0, -1000, 0)
+            time.sleep(0.2)
+            pydirectinput.press('\\')
+            pydirectinput.press('\\')
+            while not pyautogui.pixelMatchesColor(pos[0], pos[1],expectedRGBColor=(24, 24, 24),tolerance=40):
+                if not g_toggle:
+                    break
+                click(pos[0], pos[1], delay=0.2)
+                time.sleep(0.8)
+            ctypes.windll.user32.mouse_event(0x0800, 0, 0, 1000, 0)
+            click(1112, 309, delay=0.2)
+        if upgrade == 'range':
+            pos = (955, 562)
+            print("hi")
+            click(765, 497, delay=0.1)
+            ctypes.windll.user32.mouse_event(0x0800, 0, 0, -1000, 0)
+            time.sleep(0.2)
+            pydirectinput.press('\\')
+            pydirectinput.press('\\')
+            while not pyautogui.pixelMatchesColor(pos[0], pos[1],expectedRGBColor=(24, 24, 24),tolerance=40):
+                if not g_toggle:
+                    break
+                click(pos[0], pos[1], delay=0.2)
+                time.sleep(0.8)
+            ctypes.windll.user32.mouse_event(0x0800, 0, 0, 1000, 0)
+            click(1112, 309, delay=0.2)
+        if upgrade == "damage":
+            pos = (954, 415)
+            print("hi")
+            click(765, 497, delay=0.1)
+            ctypes.windll.user32.mouse_event(0x0800, 0, 0, -1000, 0)
+            time.sleep(0.2)
+            pydirectinput.press('\\')
+            pydirectinput.press('down')
+            pydirectinput.press('down')
+            pydirectinput.press('down')
+            pydirectinput.press('down')
+            pydirectinput.press('\\')
+            while not pyautogui.pixelMatchesColor(pos[0], pos[1],expectedRGBColor=(24, 24, 24),tolerance=40):
+                if not g_toggle:
+                    break
+                click(pos[0], pos[1], delay=0.2)
+                time.sleep(0.8)
+            ctypes.windll.user32.mouse_event(0x0800, 0, 0, 1000, 0)
+            click(1112, 309, delay=0.2)
+        if upgrade == "speed":
+            pos = (956, 566)
+            print("hi")
+            click(765, 497, delay=0.1)
+            ctypes.windll.user32.mouse_event(0x0800, 0, 0, -1000, 0)
+            time.sleep(0.2)
+            pydirectinput.press('\\')
+            pydirectinput.press('down')
+            pydirectinput.press('down')
+            pydirectinput.press('down')
+            pydirectinput.press('down')
+            pydirectinput.press('\\')
+            while not pyautogui.pixelMatchesColor(pos[0], pos[1],expectedRGBColor=(24, 24, 24),tolerance=40):
+                if not g_toggle:
+                    break
+                click(pos[0], pos[1], delay=0.2)
+                time.sleep(0.8)
+            ctypes.windll.user32.mouse_event(0x0800, 0, 0, 1000, 0)
+            click(1112, 309, delay=0.2)
+        if upgrade == "armor":
+            pos = (954, 561)
+            print("hi")
+            click(765, 497, delay=0.1)
+            ctypes.windll.user32.mouse_event(0x0800, 0, 0, -1000, 0)
+            time.sleep(0.2)
+            pydirectinput.press('\\')
+            pydirectinput.press('down')
+            pydirectinput.press('down')
+            pydirectinput.press('down')
+            pydirectinput.press('down')
+            pydirectinput.press('down')
+            pydirectinput.press('\\')
+            while not pyautogui.pixelMatchesColor(pos[0], pos[1],expectedRGBColor=(24, 24, 24),tolerance=40):
+                if not g_toggle:
+                    break
+                click(pos[0], pos[1], delay=0.2)
+                time.sleep(0.8)
+            ctypes.windll.user32.mouse_event(0x0800, 0, 0, 1000, 0)
+            click(1112, 309, delay=0.2)
+    
+    
     print(f"Purchased {upgrade}")
 
 
@@ -411,8 +559,11 @@ def secure_select(pos: tuple[int,int]):
     click(pos[0],pos[1],delay=0.2)
     time.sleep(0.5)
     while not pyautogui.pixel(607,381) == (255,255,255):
+        if bt.does_exist('Winter\\Erza_Armor.png',confidence=0.8,grayscale=True):
+            click(752, 548,delay=0.2)
+            time.sleep(0.6)
         click(pos[0],pos[1],delay=0.2)
-        time.sleep(0.5)
+        time.sleep(0.8)
     print(f"Selected unit at {pos}")
 
 
@@ -475,6 +626,20 @@ def place_unit(unit: str, pos : tuple[int,int], close: bool | None=None, region:
         
 def buy_monarch(): # this just presses e untill it buys monarch, use after direction('5')
     monarch_region = (686, 606, 818, 646)
+    e_delay = 0.4
+    timeout = 3/e_delay
+    keyboard.press_and_release('e')
+    while not bt.does_exist('Winter\\DetectArea.png',confidence=0.7,grayscale=True):
+        if bt.does_exist('Winter\\Monarch.png',confidence=0.7,grayscale=False,region=monarch_region):
+            break
+        if timeout < 0:
+            quick_rts()
+            directions('5')
+            timeout = 3/e_delay
+        timeout-=1
+        keyboard.press_and_release('e')
+        time.sleep(e_delay)
+    print("Found area")
     while not bt.does_exist('Winter\\Monarch.png',confidence=0.7,grayscale=False,region=monarch_region):
         if not g_toggle:
             break
@@ -597,7 +762,7 @@ def sell_kaguya(): # Sells kaguya (cant reset while domain is active)
 def detect_loss():
     print("Starting loss detection")
     while True:
-        if pyautogui.pixelMatchesColor(690,270,(242,25,28),tolerance=25):
+        if pyautogui.pixelMatchesColor(690,270,(242,25,28),tolerance=10) or pyautogui.pixelMatchesColor(690,270,(199, 45, 40),tolerance=5):
             print("found loss")
             try:
                 args = list(sys.argv)
@@ -635,6 +800,7 @@ def main():
             print("Starting new match")
             wait_start()
             quick_rts()
+            time.sleep(2)
             # Set up first 2 rabbits
             directions('1', 'rabbit')
             keyboard.press_and_release('e')
@@ -1084,48 +1250,112 @@ def main():
                 time.sleep(0.5)
                 click(607, 381, delay=0.2)
             
-            wave_150 = False
-            done_path = False   
-            while not wave_150:
-                if avM.get_wave() == 149 and not done_path:       
-                    def spam_e():
-                        while not done_path:
-                            keyboard.press_and_release('e')
-                            time.sleep(0.2)
-                        print("Done buying lanes")
-                    quick_rts()
-                    #DIR_BUYRESTLANES
-                    keyboard.press('a')
-                    time.sleep(0.4)
-                    keyboard.release('a')
-                    keyboard.press_and_release('v')
-                    time.sleep(1)
-                    Thread(target=spam_e).start()
-                    keyboard.press('w')
-                    time.sleep(1.5)
-                    keyboard.release("w")
-                    time.sleep(1)
-                    keyboard.press('w')
-                    time.sleep(0.5)
-                    keyboard.release("w")
-                    keyboard.press('s')
-                    time.sleep(2.8)
-                    keyboard.release('s')
-                    time.sleep(1)
-                    keyboard.press('s')
-                    time.sleep(1)
-                    keyboard.release('s')
-                    keyboard.press_and_release('v')
-                    quick_rts()
-                    time.sleep(2)
-                    done_path = True
-                if avM.get_wave()==150:
-                    wave_150 = True
-                else:
-                    if avM.get_wave()%2==0 or avM.get_wave() == 139:
-                        repair_barricades()
+            if WAVE_RESTART_150:
+                wave_150 = False
+                done_path = False   
+                while not wave_150:
+                    if avM.get_wave() == 149 and not done_path:       
+                        def spam_e():
+                            while not done_path:
+                                keyboard.press_and_release('e')
+                                time.sleep(0.2)
+                            print("Done buying lanes")
                         quick_rts()
-                time.sleep(2)
+                        #DIR_BUYRESTLANES
+                        keyboard.press_and_release('f')
+                        time.sleep(0.7)
+                        bt.click_image("Winter\\LookDownFinder.png",confidence=0.8,grayscale=False,offset=[0,-50])
+                        keyboard.press_and_release('f')
+                        clicks_look_down =  [(404, 400), (649, 772), (745, 858)]
+                        for i in clicks_look_down:
+                            click(i[0],i[1],delay=0.1)
+                            if i != (649, 772):
+                                time.sleep(0.3)
+                            else:
+                                time.sleep(1)
+                        keyboard.press('o')
+                        time.sleep(1)
+                        keyboard.release('o')
+                        keyboard.press('s')
+                        time.sleep(0.45)
+                        keyboard.release('s')
+                        keyboard.press_and_release('v')
+                        time.sleep(1)
+                        Thread(target=spam_e).start()
+                        keyboard.press('a')
+                        time.sleep(1.5)
+                        time.sleep(1)
+                        time.sleep(0.5)
+                        keyboard.release("a")
+                        keyboard.press('d')
+                        time.sleep(2.8)
+                        time.sleep(1)
+                        time.sleep(1)
+                        keyboard.release('d')
+                        keyboard.press_and_release('v')
+                        quick_rts()
+                        time.sleep(2)
+                        done_path = True
+                    if avM.get_wave()==150:
+                        wave_150 = True
+                    else:
+                        if avM.get_wave()%2==0 or avM.get_wave() == 139:
+                            repair_barricades()
+                            quick_rts()
+                    time.sleep(2)
+            else:
+                wave_140 = False
+                done_path = False   
+                while not wave_140:
+                    if avM.get_wave() == 139 and not done_path:       
+                        def spam_e():
+                            while not done_path:
+                                keyboard.press_and_release('e')
+                                time.sleep(0.2)
+                            print("Done buying lanes")
+                        quick_rts()
+                        #DIR_BUYRESTLANES
+                        keyboard.press_and_release('f')
+                        time.sleep(0.7)
+                        bt.click_image("Winter\\LookDownFinder.png",confidence=0.8,grayscale=False,offset=[0,-50])
+                        keyboard.press_and_release('f')
+                        clicks_look_down =  [(404, 400), (649, 772), (745, 858)]
+                        for i in clicks_look_down:
+                            click(i[0],i[1],delay=0.1)
+                            if i != (649, 772):
+                                time.sleep(0.3)
+                            else:
+                                time.sleep(1)
+                        keyboard.press('o')
+                        time.sleep(1)
+                        keyboard.release('o')
+                        keyboard.press('s')
+                        time.sleep(0.45)
+                        keyboard.release('s')
+                        keyboard.press_and_release('v')
+                        time.sleep(1)
+                        Thread(target=spam_e).start()
+                        keyboard.press('a')
+                        time.sleep(1.5)
+                        time.sleep(1)
+                        time.sleep(0.5)
+                        keyboard.release("a")
+                        keyboard.press('d')
+                        time.sleep(2.8)
+                        time.sleep(1)
+                        time.sleep(1)
+                        keyboard.release('d')
+                        keyboard.press_and_release('v')
+                        quick_rts()
+                        time.sleep(2)
+                        done_path = True
+                    if avM.get_wave()==140:
+                        wave_140 = True
+                    else:
+                        if avM.get_wave()%2==0:
+                            repair_barricades()
+                            quick_rts()
+                    time.sleep(2)
             num_runs+=1
             print(f"Run over, runs: {num_runs}")
             try:
@@ -1162,14 +1392,90 @@ def main():
                 time.sleep(0.5)
                 if avM.get_wave() == 0:
                     match_restarted = True
-                time.sleep(1)
+                time.sleep(5)
 
-
-    
-if pyautogui.pixelMatchesColor(690,270,(242,25,28),tolerance=25):
-    on_failure()
+def disconnect_checker():
+    while True:
+       if bt.does_exist("Winter\\Disconnected.png",confidence=0.9,grayscale=True,region=(525,353,972,646)) or bt.does_exist("Winter\\Disconnect_Two.png",confidence=0.9,grayscale=True,region=(525,353,972,646)):
+        print("found disconnected")
+        try:
+            args = list(sys.argv)
+            if "--stopped" in args:
+                args.remove("--stopped")
+            sys.stdout.flush()
+            os.execl(sys.executable, sys.executable, *args)
+        except Exception as e:
+            print("Error")
+        time.sleep(6)
+def on_disconnect():
+    while not bt.does_exist("Winter\\AreaIcon.png",confidence=0.8,grayscale=False):
+        click(849,596,delay=0.1)
+        time.sleep(2)
+        click(752, 548,delay=0.2)
+        time.sleep(2)
+        click(1083,321,delay=0.1)
+        time.sleep(2)
+    time.sleep(1)
+    bt.click_image("Winter\\AreaIcon.png",confidence=0.8,grayscale=False,offset=(0,0))
+    time.sleep(3)
+    open_menu = False
+    def spam_e():
+        #{(884, 266): (170, 232, 235)}
+        while not open_menu:
+            keyboard.press_and_release('e')
+            time.sleep(0.2)
+    while not open_menu:
+        click(656,764,delay=0.1)
+        time.sleep(1)
+        keyboard.press('w')
+        time.sleep(0.3)
+        keyboard.release('w')
+        keyboard.press('a')
+        time.sleep(0.3)
+        keyboard.release('a')
+        Thread(target=spam_e).start()
+        keyboard.press('a')
+        time.sleep(1)
+        keyboard.release('a')
+        if pyautogui.pixelMatchesColor(884,266,(170,232,235),tolerance=8):
+            open_menu = True
+        if not open_menu:
+            click(849,596,delay=0.1)
+            time.sleep(2)
+            click(752, 548,delay=0.2)
+            time.sleep(2)
+            click(1083,321,delay=0.1)
+            time.sleep(2)
+            bt.click_image("Winter\\AreaIcon.png",confidence=0.8,grayscale=False,offset=(0,0))
+        time.sleep(3)
+    # [(454, 703), (659, 509), (301, 676)]
+    click(454, 703,delay=0.1)
     time.sleep(2)
+    click(659, 509,delay=0.1)
+    time.sleep(2)
+    click(301, 676,delay=0.1)
+    time.sleep(2)
+    wait_start()
+    wait_start()
+    keyboard.press('i')
+    time.sleep(1)
+    keyboard.release('i')
+    ctypes.windll.user32.mouse_event(0x0001, 0, 1000, 0, 0)
+    keyboard.press('o')
+    time.sleep(1)
+    keyboard.release('o')      
+    click(488, 463,delay=0.2)
+
+
+print(f"Running loxer's winter macro v{VERSION_N}")
+if bt.does_exist("Winter\\Disconnected.png",confidence=0.9,grayscale=True,region=(525,353,972,646)) or  bt.does_exist("Winter\\Disconnect_Two.png",confidence=0.9,grayscale=True,region=(525,353,972,646)):
+    on_disconnect()
+    time.sleep(6)
+if pyautogui.pixelMatchesColor(690,270,(242,25,28),tolerance=10) or pyautogui.pixelMatchesColor(690,270,(199, 45, 40),tolerance=5):
+    on_failure()
+    time.sleep(6)
 Thread(target=detect_loss).start()
+Thread(target=disconnect_checker).start()
 if AUTO_START:
     if not "--stopped" in sys.argv:
         g_toggle = True
@@ -1178,17 +1484,25 @@ if AUTO_START:
 for z in range(3):
     print(f"Starting in {3-z}")
     time.sleep(1)
-if avM.get_wave() >= 1:
-    avM.restart_match()
-main()
-
-
-
-
-
-
-
-
-
+if g_toggle:
+    if avM.get_wave() >= 1:
+        avM.restart_match()
+    #release potential keys
+    keyboard.press_and_release('w')
+    keyboard.press_and_release('a')
+    keyboard.press_and_release('s')
+    keyboard.press_and_release('d')
+    main()
+else:
+    while not g_toggle:
+        time.sleep(1)
+    if avM.get_wave() >= 1:
+        avM.restart_match()
+    #release potential keys
+    keyboard.press_and_release('w')
+    keyboard.press_and_release('a')
+    keyboard.press_and_release('s')
+    keyboard.press_and_release('d')
+    main()
 
 
